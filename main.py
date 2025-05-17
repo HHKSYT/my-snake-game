@@ -16,6 +16,25 @@ score_font = pygame.font.Font(None,60)
 high_score_font = pygame.font.Font(None,60)
 high_score_text_font = pygame.font.Font(None, 30)
 score_text_font = pygame.font.Font(None,30)
+prompt_text_font = pygame.font.Font(None, 25)
+credits_text_font = pygame.font.Font(None, 25)
+help_text_font = pygame.font.Font(None,25)
+go_help_text_font = pygame.font.Font(None,25)
+
+help_text = """
+    Welcome to Liam's snake game
+    A game created for fun
+    created with python
+    How to play:
+    move the snake with arrows keys
+    eat the food
+    there is no limit here (unless you fully cover the grid)
+    and most importantly
+    have fun
+    Press ESC to go back
+"""
+
+
 GREEN = (173,204,96)
 DARK_GREEN = (43,51,24)
 LIGHT_GREEN = (100,120,80)
@@ -67,7 +86,7 @@ class Game:
     def __init__(self):
         self.snake = Snake()
         self.food = Food(self.snake.body)
-        self.state = "RUNNING"
+        self.state = "MENU"
         self.score = 0
         self.high_score = 0
     def draw(self):
@@ -115,13 +134,44 @@ def draw_grid():
             rect = pygame.Rect(OFFSET + x * cell_size, OFFSET + y * cell_size, cell_size, cell_size)
             pygame.draw.rect(screen,LIGHT_GREEN,rect,1)
 
+def draw_main_menu():
+    screen.fill(GREEN)
+    
+    title_surface = title_font.render("Retro Snake", True, DARK_GREEN)
+    prompt_surface = prompt_text_font.render("Press ENTER to Start", True, DARK_GREEN)
+    go_help_surface = go_help_text_font.render("Press h for help", True, DARK_GREEN)
+
+    # Center the text
+    screen.blit(title_surface, ((screen.get_width() - title_surface.get_width()) // 2, 150))
+    screen.blit(prompt_surface, ((screen.get_width() - prompt_surface.get_width()) // 2, 250))
+    screen.blit(go_help_surface, ((screen.get_width() - go_help_surface.get_width()) // 2, 350))
+
+    pygame.display.update()
+
+def draw_help_menu():
+    screen.fill(GREEN)
+
+    lines = help_text.strip().split("\n")  # Split into lines
+    start_y = 100  # Starting vertical position
+    line_spacing = 35  # Pixels between lines
+
+    for i, line in enumerate(lines):
+        rendered_line = help_text_font.render(line.strip(), True, DARK_GREEN)
+        screen.blit(
+            rendered_line,
+            ((screen.get_width() - rendered_line.get_width()) // 2, start_y + i * line_spacing)
+        )
+
+    pygame.display.update()
+
+
 pygame.display.set_caption("Retro Snake")
 
 clock = pygame.time.Clock()
 
 game = Game()
 
-food_surface = pygame.image.load(resource_path("Graphics/food.png"))
+food_surface = pygame.image.load(resource_path("Final.png"))
 
 SNAKE_UPDATE = pygame.USEREVENT
 pygame.time.set_timer(SNAKE_UPDATE,200)
@@ -129,39 +179,59 @@ pygame.time.set_timer(SNAKE_UPDATE,200)
 
 while True:
     for event in pygame.event.get():
-        if event.type == SNAKE_UPDATE:
-            game.update()
+        
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
 
-        if event.type == pygame.KEYDOWN:
-            if game.state == "STOPPED":
+        if game.state == "MENU":
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                 game.state = "RUNNING"
-            if event.key == pygame.K_UP and game.snake.direction != Vector2(0,1):
-                game.snake.direction = Vector2(0,-1)
-            if event.key == pygame.K_DOWN and game.snake.direction != Vector2(0,-1):
-                game.snake.direction = Vector2(0,1)
-            if event.key == pygame.K_LEFT and game.snake.direction != Vector2(1,0):
-                game.snake.direction = Vector2(-1,0)
-            if event.key == pygame.K_RIGHT and game.snake.direction != Vector2(-1,0):
-                game.snake.direction = Vector2(1,0)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_h:
+                game.state = "HELP"
+        
+        if game.state == "HELP":
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                game.state = "MENU"
 
-    screen.fill(GREEN)
-    draw_grid()
-    pygame.draw.rect(screen, DARK_GREEN, (OFFSET-5, OFFSET-5, cell_size*number_of_cell+10, cell_size*number_of_cell+10), 5)
-    game.draw()
-    title_surface = title_font.render("Retro Snake", True, DARK_GREEN)
-    score_surface = score_font.render(str(game.score),True, DARK_GREEN)
-    high_score_surface =  high_score_font.render(str(game.high_score), True, DARK_GREEN)
-    high_score_text_surface = high_score_text_font.render("High Score", True, DARK_GREEN)
-    score_text_surface = score_text_font.render("Current Score", True, DARK_GREEN)
-    screen.blit(title_surface, (OFFSET-5,20))
-    screen.blit(score_surface, (OFFSET+50, cell_size*number_of_cell +115))
-    screen.blit(score_text_surface, (OFFSET+15, cell_size*number_of_cell + 90))
-    screen.blit(high_score_surface, (OFFSET+490, cell_size * number_of_cell + 115))
-    screen.blit(high_score_text_surface,(OFFSET+460, cell_size * number_of_cell + 90))
-    pygame.display.update()
+        elif game.state == "STOPPED":
+            if event.type == pygame.KEYDOWN:
+                game.state = "RUNNING"
+
+        elif game.state == "RUNNING":
+            if event.type == SNAKE_UPDATE:
+                game.update()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP and game.   snake.direction != Vector2(0,1):
+                    game.snake.direction = Vector2(0,-1)
+                if event.key == pygame.K_DOWN and game.snake.direction != Vector2(0,-1):
+                    game.snake.direction = Vector2(0,1)
+                if event.key == pygame.K_LEFT and game.snake.direction != Vector2(1,0):
+                    game.snake.direction = Vector2(-1,0)
+                if event.key == pygame.K_RIGHT and game.snake.direction != Vector2(-1,0):
+                    game.snake.direction = Vector2(1,0)
+    if game.state == "HELP":
+        draw_help_menu()
+    elif game.state == "MENU":
+        draw_main_menu()
+    else:
+
+        screen.fill(GREEN)
+        draw_grid()
+        pygame.draw.rect(screen, DARK_GREEN, (OFFSET-5, OFFSET-5, cell_size*number_of_cell+10, cell_size*number_of_cell+10), 5)
+        game.draw()
+        title_surface = title_font.render("Retro Snake", True, DARK_GREEN)
+        score_surface = score_font.render(str(game.score),True, DARK_GREEN)
+        high_score_surface =  high_score_font.render(str(game.high_score), True, DARK_GREEN)
+        high_score_text_surface = high_score_text_font.render("High Score", True, DARK_GREEN)
+        score_text_surface = score_text_font.render("Current Score", True, DARK_GREEN)
+        
+        screen.blit(title_surface, (OFFSET-5,20))
+        screen.blit(score_surface, (OFFSET+50, cell_size*number_of_cell +115))
+        screen.blit(score_text_surface, (OFFSET+15, cell_size*number_of_cell + 90))
+        screen.blit(high_score_surface, (OFFSET+490, cell_size * number_of_cell + 115))
+        screen.blit(high_score_text_surface,(OFFSET+460, cell_size * number_of_cell + 90))
+        pygame.display.update()
 
     clock.tick(60)
     
