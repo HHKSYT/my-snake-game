@@ -1,4 +1,4 @@
-import pygame, sys, random, os,math
+import pygame, sys, random, os,math,json
 from pygame.math import Vector2
 
 
@@ -42,6 +42,24 @@ LIGHT_GREEN = (100,120,80)
 cell_size = 20
 number_of_cell = 27
 OFFSET = 75
+
+def load_high_score(filename="highscore.json"):
+    try:
+        with open(filename, "r") as f:
+            score = json.load(f).get("high_score", 0)
+            print(f"[DEBUG] Loaded high score from file: {score}")
+            return score
+    except (FileNotFoundError, ValueError) as e:
+        print(f"[DEBUG] Could not load high score file: {e}")
+        return 0
+
+def save_high_score(score, filename="highscore.json"):
+    try:
+        with open(filename, "w") as f:
+            json.dump({"high_score": score}, f)
+        print(f"[DEBUG] Saved high score to file: {score}")
+    except Exception as e:
+        print(f"[ERROR] Could not save high score: {e}")
 
 class Food:
     def __init__(self,snake_body):
@@ -89,6 +107,7 @@ class Game:
         self.state = "MENU"
         self.score = 0
         self.high_score = 0
+        self.high_score = load_high_score()
     def draw(self):
         self.food.draw()
         self.snake.draw()
@@ -105,7 +124,7 @@ class Game:
             self.snake.add_segment = True
             self.score += 1
             if self.score > self.high_score:
-                self.high_score += 1
+                self.high_score = self.score
             self.snake.eat_sound.play()
     def check_collison_with_edges(self):
         if self.snake.body[0].x == number_of_cell or self.snake.body[0].x == -1:
@@ -118,6 +137,7 @@ class Game:
         self.state = "STOPPED"
         if self.score > self.high_score:
             self.high_score = self.score
+        save_high_score(self.high_score)
         self.score = 0
         self.snake.wall_hit_sound.play()
     def check_collision_with_tail(self):
@@ -137,15 +157,16 @@ def draw_grid():
 def draw_main_menu():
     screen.fill(GREEN)
     
-    title_surface = title_font.render("Retro Snake", True, DARK_GREEN)
+    title_surface = title_font.render("Liam's Snake", True, DARK_GREEN)
     prompt_surface = prompt_text_font.render("Press ENTER to Start", True, DARK_GREEN)
+    credits_text_surface = credits_text_font.render("Background music is made by my friend Kane",True, DARK_GREEN)
     go_help_surface = go_help_text_font.render("Press h for help", True, DARK_GREEN)
 
     # Center the text
     screen.blit(title_surface, ((screen.get_width() - title_surface.get_width()) // 2, 150))
     screen.blit(prompt_surface, ((screen.get_width() - prompt_surface.get_width()) // 2, 250))
     screen.blit(go_help_surface, ((screen.get_width() - go_help_surface.get_width()) // 2, 350))
-
+    screen.blit(credits_text_surface, (OFFSET+235, cell_size * number_of_cell + 120))
     pygame.display.update()
 
 def draw_help_menu():
@@ -170,6 +191,9 @@ pygame.display.set_caption("Retro Snake")
 clock = pygame.time.Clock()
 
 game = Game()
+
+# save_high_score(0)
+
 
 food_surface = pygame.image.load(resource_path("Final.png"))
 
