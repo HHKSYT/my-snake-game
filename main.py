@@ -112,6 +112,24 @@ class Snake:
         self.body = [Vector2(6,9), Vector2(5,9), Vector2(4,9)]
         self.direction = Vector2(1,0)
 
+class Button:
+    def __init__(self, pos, image_path, hover_image_path):
+        self.image = pygame.image.load(resource_path(image_path)).convert_alpha()
+        self.hover_image = pygame.image.load(resource_path(hover_image_path)).convert_alpha()
+        self.rect = self.image.get_rect(center=pos)
+
+    def draw(self, screen):
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            screen.blit(self.hover_image, self.rect)
+        else:
+            screen.blit(self.image, self.rect)
+
+    def is_clicked(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.rect.collidepoint(pygame.mouse.get_pos()):
+                return True
+        return False
+
 class Game:
     def __init__(self):
         self.snake = Snake()
@@ -166,19 +184,26 @@ def draw_grid():
             rect = pygame.Rect(OFFSET + x * cell_size, OFFSET + y * cell_size, cell_size, cell_size)
             pygame.draw.rect(screen,LIGHT_GREEN,rect,1)
 
+start_button = Button(
+    pos=(screen.get_width() // 2, 300),
+    image_path="Graphics/start_menu.png",
+    hover_image_path="Graphics/start_glow.png"
+)
+
 def draw_main_menu():
     screen.fill(GREEN)
-    
+
     title_surface = title_font.render("Liam's Snake", True, DARK_GREEN)
-    prompt_surface = prompt_text_font.render("Press ENTER to Start", True, DARK_GREEN)
-    credits_text_surface = credits_text_font.render("Background music is made by my friend Kane",True, DARK_GREEN)
+    credits_text_surface = credits_text_font.render("Background music is made by my friend Kane", True, DARK_GREEN)
     go_help_surface = go_help_text_font.render("Press h for help", True, DARK_GREEN)
 
-    # Center the text
     screen.blit(title_surface, ((screen.get_width() - title_surface.get_width()) // 2, 150))
-    screen.blit(prompt_surface, ((screen.get_width() - prompt_surface.get_width()) // 2, 250))
     screen.blit(go_help_surface, ((screen.get_width() - go_help_surface.get_width()) // 2, 350))
-    screen.blit(credits_text_surface, (OFFSET+220, cell_size * number_of_cell + 120))
+    screen.blit(credits_text_surface, (OFFSET + 220, cell_size * number_of_cell + 120))
+
+    # Draw hoverable start button
+    start_button.draw(screen)
+
     pygame.display.update()
 
 def draw_help_menu():
@@ -234,12 +259,11 @@ while True:
             pygame.quit()
             sys.exit()
 
-        if game.state == "MENU":
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                game.state = "MODE"
+        if start_button.is_clicked(event):
+            game.state = "MODE"
                 
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_h:
-                game.state = "HELP"
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_h:
+            game.state = "HELP"
         
         if game.state == "HELP":
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
