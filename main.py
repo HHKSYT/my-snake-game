@@ -1,6 +1,14 @@
 import pygame, sys, random, os,math,json
 from pygame.math import Vector2
+import socket
 
+# def check_internet_connection():
+#     try:
+#         socket.create_connection(("8.8.8.8", 53), timeout=2)
+#         return True
+#     except OSError:
+#         return False
+    
 
 def resource_path(relative_path):
     # Detects if the program is being run from a PyInstaller bundle
@@ -16,10 +24,14 @@ score_font = pygame.font.Font(None,60)
 high_score_font = pygame.font.Font(None,60)
 high_score_text_font = pygame.font.Font(None, 30)
 score_text_font = pygame.font.Font(None,30)
-prompt_text_font = pygame.font.Font(None, 25)
-credits_text_font = pygame.font.Font(None, 25)
-help_text_font = pygame.font.Font(None,25)
-go_help_text_font = pygame.font.Font(None,25)
+prompt_text_font = pygame.font.Font("bold.ttf", 25)
+credits_text_font = pygame.font.Font("bold.ttf", 25)
+help_text_font = pygame.font.Font("bold.ttf",25)
+go_help_text_font = pygame.font.Font("bold.ttf",25)
+mode_text_font = pygame.font.Font("bold.ttf", 30)
+offline_text_font = pygame.font.Font("bold.ttf",25)
+online_text_font = pygame.font.Font("bold.ttf",25)
+not_avaiable_text_font= pygame.font.Font("bold.ttf",25)
 
 help_text = """
     Welcome to Liam's snake game
@@ -185,6 +197,20 @@ def draw_help_menu():
 
     pygame.display.update()
 
+def draw_choose_offline():
+    screen.fill(GREEN)
+    
+    mode_text_surface = mode_text_font.render("Choose Offline or Online", True, DARK_GREEN)
+    offline_text_surface = offline_text_font.render("Press f for offline", True, DARK_GREEN)
+    online_text_surface = online_text_font.render("Press o for online", True, DARK_GREEN)
+    not_avaiable_surface = not_avaiable_text_font.render("Online mode is currently not avaiable", True, DARK_GREEN)
+
+    screen.blit(mode_text_surface, ((screen.get_width() - mode_text_surface.get_width()) // 2, 150))
+    screen.blit(offline_text_surface, ((screen.get_width() - offline_text_surface.get_width()) // 2, 250))
+    screen.blit(online_text_surface, ((screen.get_width() - online_text_surface.get_width()) // 2, 350))
+    screen.blit(not_avaiable_surface, ((screen.get_width() - not_avaiable_surface.get_width()) // 2, 400))
+    pygame.display.update()
+
 
 pygame.display.set_caption("Retro Snake")
 
@@ -210,7 +236,8 @@ while True:
 
         if game.state == "MENU":
             if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                game.state = "RUNNING"
+                game.state = "MODE"
+                
             if event.type == pygame.KEYDOWN and event.key == pygame.K_h:
                 game.state = "HELP"
         
@@ -218,6 +245,10 @@ while True:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 game.state = "MENU"
 
+        if game.state == "MODE":
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_f:
+                game.state = "RUNNING"
+                
         elif game.state == "STOPPED":
             if event.type == pygame.KEYDOWN:
                 game.state = "RUNNING"
@@ -236,6 +267,8 @@ while True:
                     game.snake.direction = Vector2(1,0)
     if game.state == "HELP":
         draw_help_menu()
+    elif game.state == "MODE":
+        draw_choose_offline()
     elif game.state == "MENU":
         draw_main_menu()
     else:
