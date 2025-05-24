@@ -24,14 +24,14 @@ score_font = pygame.font.Font(None,60)
 high_score_font = pygame.font.Font(None,60)
 high_score_text_font = pygame.font.Font(None, 30)
 score_text_font = pygame.font.Font(None,30)
-prompt_text_font = pygame.font.Font("bold.ttf", 25)
-credits_text_font = pygame.font.Font("bold.ttf", 25)
-help_text_font = pygame.font.Font("bold.ttf",25)
-go_help_text_font = pygame.font.Font("bold.ttf",25)
-mode_text_font = pygame.font.Font("bold.ttf", 30)
-offline_text_font = pygame.font.Font("bold.ttf",25)
-online_text_font = pygame.font.Font("bold.ttf",25)
-not_avaiable_text_font= pygame.font.Font("bold.ttf",25)
+prompt_text_font = pygame.font.Font("font/bold.ttf", 25)
+credits_text_font = pygame.font.Font("font/bold.ttf", 18)
+help_text_font = pygame.font.Font("font/bold.ttf",25)
+go_help_text_font = pygame.font.Font("font/bold.ttf",25)
+mode_text_font = pygame.font.Font("font/bold.ttf", 30)
+offline_text_font = pygame.font.Font("font/bold.ttf",25)
+online_text_font = pygame.font.Font("font/bold.ttf",25)
+not_avaiable_text_font= pygame.font.Font("font/bold.ttf",25)
 
 help_text = """
     Welcome to Liam's snake game
@@ -178,7 +178,7 @@ def draw_main_menu():
     screen.blit(title_surface, ((screen.get_width() - title_surface.get_width()) // 2, 150))
     screen.blit(prompt_surface, ((screen.get_width() - prompt_surface.get_width()) // 2, 250))
     screen.blit(go_help_surface, ((screen.get_width() - go_help_surface.get_width()) // 2, 350))
-    screen.blit(credits_text_surface, (OFFSET+235, cell_size * number_of_cell + 120))
+    screen.blit(credits_text_surface, (OFFSET+220, cell_size * number_of_cell + 120))
     pygame.display.update()
 
 def draw_help_menu():
@@ -221,7 +221,7 @@ game = Game()
 # save_high_score(0)
 
 
-food_surface = pygame.image.load(resource_path("Final.png"))
+food_surface = pygame.image.load(resource_path("Graphics/final.png"))
 
 SNAKE_UPDATE = pygame.USEREVENT
 pygame.time.set_timer(SNAKE_UPDATE,200)
