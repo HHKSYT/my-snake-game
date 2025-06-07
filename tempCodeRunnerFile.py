@@ -1,0 +1,1 @@
+input_box = pygame.Rect(200, 185, 240, 50)
