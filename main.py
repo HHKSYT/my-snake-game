@@ -210,8 +210,8 @@ def draw_grid():
 
 start_button = Button(
     pos=(screen.get_width() // 2, 300),
-    image_path="online2.png",
-    hover_image_path="online1.png"
+    image_path="Graphics/menu_small_1.png",
+    hover_image_path="Graphics/menu_small_2.png"
 )
 
 def draw_main_menu():
