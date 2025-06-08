@@ -1,1 +1,1 @@
-input_box = pygame.Rect(200, 185, 240, 50)
+T+460, cell_size * number_of_cell + 90))

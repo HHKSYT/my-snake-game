@@ -91,7 +91,7 @@ not_avaiable_text_font= pygame.font.Font("font/bold.ttf",25)
 ip_active = False
 user_active = False
 username = "Liam"
-server_ip = "192.168.99.121"
+server_ip = "192.168.99.230"
 
 names = ""
 scor = ""
@@ -186,7 +186,10 @@ class Game:
     def game_over(self):
         self.snake.reset()
         self.food.position = self.food.generate_random_pos(self.snake.body)
-        self.state = "STOPPED"
+        if self.state == "ONLINE_PLAY":
+            self.state = "DEAD"
+        else:
+            self.state = "STOPPED"
         if self.score > self.high_score:
             self.high_score = self.score
         save_high_score(self.high_score)
@@ -207,8 +210,8 @@ def draw_grid():
 
 start_button = Button(
     pos=(screen.get_width() // 2, 300),
-    image_path="Graphics/start_menu.png",
-    hover_image_path="Graphics/start_glow.png"
+    image_path="online2.png",
+    hover_image_path="online1.png"
 )
 
 def draw_main_menu():
@@ -278,7 +281,7 @@ def handleclick(event):
             else:
                 user_active = False
                 ip_active = False
-
+        
 
 
         if event.type == pygame.KEYDOWN:
@@ -398,15 +401,18 @@ while True:
                 game.state = "ONLINE"
         if game.state == "ONLINE":
             handleclick(event)
+        if game.state == "DEAD":
+            if event.type == pygame.KEYDOWN:
+                game.snake.reset()
+                # game.food.position = game.food.generate_random_pos(game.snake.body)
+                game.score = 0
+                game.state = "ONLINE_PLAY"
         elif game.state == "STOPPED":
             if event.type == pygame.KEYDOWN:
-                print("RUNNING")
                 game.state = "RUNNING"
         
         elif game.state in ["RUNNING","ONLINE_PLAY"]:
-            print("Tested RUNNING and ONLINE PLAY")
             if event.type == SNAKE_UPDATE:
-                print("TESTED SNAKE UPDATE")
                 game.update()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP and game.snake.direction != Vector2(0,1):
@@ -445,8 +451,26 @@ while True:
         game.state = "STOPPED"
         pygame.display.update()
     elif game.state == "ONLINE_PLAY":
-        print("TESTED STATE ONLINE PLAY")
-
+        screen.fill(GREEN)
+        draw_grid()
+        pygame.draw.rect(screen, DARK_GREEN, (OFFSET-5, OFFSET-5, cell_size*number_of_cell+10, cell_size*number_of_cell+10), 5)
+        game.draw()
+        draw_other_scores(screen, game.network, score_font)
+    
+        title_surface = title_font.render("Retro Snake", True, DARK_GREEN)
+        right_now_score = score_font.render(str(game.score),True, DARK_GREEN)
+        online_score =  high_score_font.render(str(scor), True, DARK_GREEN)
+        online_name = high_score_text_font.render(names, True, DARK_GREEN)
+        own_name = score_text_font.render(username, True, DARK_GREEN)
+    
+        screen.blit(title_surface, (OFFSET-5,20))
+        # screen.blit(right_now_score, (OFFSET+50, cell_size*number_of_cell +115))
+        # screen.blit(own_name, (OFFSET+15, cell_size*number_of_cell + 90))
+        screen.blit(online_score, (OFFSET+490, cell_size * number_of_cell + 115))
+        screen.blit(online_name,(OFFSET+460, cell_size * number_of_cell + 90))
+        pygame.display.update()
+        
+    elif game.state == "DEAD":
         screen.fill(GREEN)
         draw_grid()
         pygame.draw.rect(screen, DARK_GREEN, (OFFSET-5, OFFSET-5, cell_size*number_of_cell+10, cell_size*number_of_cell+10), 5)
@@ -460,33 +484,33 @@ while True:
         score_text_surface = score_text_font.render(username, True, DARK_GREEN)
     
         screen.blit(title_surface, (OFFSET-5,20))
-        screen.blit(score_surface, (OFFSET+50, cell_size*number_of_cell +115))
-        screen.blit(score_text_surface, (OFFSET+15, cell_size*number_of_cell + 90))
+        # screen.blit(score_surface, (OFFSET+50, cell_size*number_of_cell +115))
+        # screen.blit(score_text_surface, (OFFSET+15, cell_size*number_of_cell + 90))
         screen.blit(high_score_surface, (OFFSET+490, cell_size * number_of_cell + 115))
         screen.blit(high_score_text_surface,(OFFSET+460, cell_size * number_of_cell + 90))
         pygame.display.update()
         
 
-    else:
-        screen.fill(GREEN)
-        draw_grid()
-        pygame.draw.rect(screen, DARK_GREEN, (OFFSET-5, OFFSET-5, cell_size*number_of_cell+10, cell_size*number_of_cell+10), 5)
-        game.draw()
+    # else:
+    #     screen.fill(GREEN)
+    #     draw_grid()
+    #     pygame.draw.rect(screen, DARK_GREEN, (OFFSET-5, OFFSET-5, cell_size*number_of_cell+10, cell_size*number_of_cell+10), 5)
+    #     game.draw()
     
-        title_surface = title_font.render("Retro Snake", True, DARK_GREEN)
-        score_surface = score_font.render(str(game.score),True, DARK_GREEN)
-        high_score_surface =  high_score_font.render(str(game.high_score), True, DARK_GREEN)
-        high_score_text_surface = high_score_text_font.render("High Score", True, DARK_GREEN)
-        score_text_surface = score_text_font.render("Current Score", True, DARK_GREEN)
+    #     title_surface = title_font.render("Retro Snake", True, DARK_GREEN)
+    #     score_surface = score_font.render(str(game.score),True, DARK_GREEN)
+    #     high_score_surface =  high_score_font.render(str(game.high_score), True, DARK_GREEN)
+    #     high_score_text_surface = high_score_text_font.render("High Score", True, DARK_GREEN)
+    #     score_text_surface = score_text_font.render("Current Score", True, DARK_GREEN)
     
-        screen.blit(title_surface, (OFFSET-5,20))
-        screen.blit(score_surface, (OFFSET+50, cell_size*number_of_cell +115))
-        screen.blit(score_text_surface, (OFFSET+15, cell_size*number_of_cell + 90))
-        screen.blit(high_score_surface, (OFFSET+490, cell_size * number_of_cell + 115))
-        screen.blit(high_score_text_surface,(OFFSET+460, cell_size * number_of_cell + 90))
-        # draw_other_scores(screen, game.network, score_font)
+    #     screen.blit(title_surface, (OFFSET-5,20))
+    #     screen.blit(score_surface, (OFFSET+50, cell_size*number_of_cell +115))
+    #     screen.blit(score_text_surface, (OFFSET+15, cell_size*number_of_cell + 90))
+    #     screen.blit(high_score_surface, (OFFSET+490, cell_size * number_of_cell + 115))
+    #     screen.blit(high_score_text_surface,(OFFSET+460, cell_size * number_of_cell + 90))
+    #     # draw_other_scores(screen, game.network, score_font)
     
-        pygame.display.update()
+    #     pygame.display.update()
         
 
     clock.tick(60)
