@@ -6,6 +6,9 @@ import json
 from food import Food
 from settings import *
 from snake import Snake
+from network import NetworkClient
+
+
 
 # def check_internet_connection():
 #     try:
@@ -87,8 +90,11 @@ not_avaiable_text_font= pygame.font.Font("font/bold.ttf",25)
 
 ip_active = False
 user_active = False
-username = ""
-server_ip = ""
+username = "Liam"
+server_ip = "192.168.99.121"
+
+names = ""
+scor = ""
 
 help_text = """
     Welcome to Liam's snake game
@@ -148,16 +154,16 @@ class Game:
     def __init__(self):
         self.snake = Snake()
         self.food = Food(self.snake.body)
-        self.state = "ONLINE"
+        self.state = "MENU"
         self.score = 0
         self.high_score = 0
         self.high_score = load_high_score()
-        # self.network = NetworkClient()
+        self.network = NetworkClient(server_ip,username)
     def draw(self):
         self.food.draw()
         self.snake.draw()
     def update(self):
-        if self.state == "RUNNING":
+        if self.state in ["RUNNING", "ONLINE_PLAY"]:
             self.snake.update()
             self.check_collison_with_food()
             self.check_collison_with_edges()
@@ -171,7 +177,7 @@ class Game:
             if self.score > self.high_score:
                 self.high_score = self.score
             self.snake.eat_sound.play()
-            # self.network.send_score(self.score)
+            self.network.send_score(self.score)
     def check_collison_with_edges(self):
         if self.snake.body[0].x == number_of_cell or self.snake.body[0].x == -1:
             self.game_over()
@@ -286,6 +292,7 @@ def handleclick(event):
             elif ip_active:
                 if event.key == pygame.K_RETURN:
                     print("Server IP entered:", server_ip)
+                    game.state = "ONLINE_PLAY"
                 elif event.key == pygame.K_BACKSPACE:
                     server_ip = server_ip[:-1]
                 else:
@@ -299,8 +306,8 @@ def OnlineModeName():
     ip_box = pygame.Rect(225, 350, 240, 50)
     input_box = pygame.Rect(225, 250, 240, 50)
     screen.fill(GREEN)
-    draw_box(input_box, username, user_active,placeholder="Enter your username")
-    draw_box(ip_box, server_ip, ip_active,"Enter server IP ")
+    draw_box(input_box, username, user_active,placeholder="Username")
+    draw_box(ip_box, server_ip, ip_active,"Server IP")
     pygame.display.update()
 
 def draw_box(box, text, is_active, placeholder=""):
@@ -331,6 +338,19 @@ def draw_box(box, text, is_active, placeholder=""):
     screen.blit(clipped_surface, (box.x + 5, box.y + 5))
 
 
+def draw_other_scores(screen, network, font):
+    """
+    Display the scores of other players (from the server) on screen.
+    Assumes `network.get_scores()` returns a dictionary: {username: score}
+    """
+    scores = network.get_scores()
+    # print("Received scores:", scores)
+    # print(scores.items())
+    for name, score in scores.items():
+        global names,scor
+        names = name
+        scor = score
+        print(str(names) + " " + str(scor))
 
 
 
@@ -345,15 +365,15 @@ game = Game()
 
 
 
-SNAKE_UPDATE = pygame.USEREVENT
-pygame.time.set_timer(SNAKE_UPDATE,200)
+SNAKE_UPDATE = pygame.USEREVENT + 1
+pygame.time.set_timer(SNAKE_UPDATE,150)
 
 
 while True:
     for event in pygame.event.get():
         
         if event.type == pygame.QUIT:
-            # game.network.stop()
+            game.network.stop()
             pygame.quit()
             sys.exit()
         if game.state == "MENU":
@@ -380,13 +400,16 @@ while True:
             handleclick(event)
         elif game.state == "STOPPED":
             if event.type == pygame.KEYDOWN:
+                print("RUNNING")
                 game.state = "RUNNING"
         
-        elif game.state == "RUNNING":
+        elif game.state in ["RUNNING","ONLINE_PLAY"]:
+            print("Tested RUNNING and ONLINE PLAY")
             if event.type == SNAKE_UPDATE:
+                print("TESTED SNAKE UPDATE")
                 game.update()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP and game.   snake.direction != Vector2(0,1):
+                if event.key == pygame.K_UP and game.snake.direction != Vector2(0,1):
                     game.snake.direction = Vector2(0,-1)
                 if event.key == pygame.K_DOWN and game.snake.direction != Vector2(0,-1):
                     game.snake.direction = Vector2(0,1)
@@ -418,8 +441,53 @@ while True:
         screen.blit(score_text_surface, (OFFSET+15, cell_size*number_of_cell + 90))
         screen.blit(high_score_surface, (OFFSET+490, cell_size * number_of_cell + 115))
         screen.blit(high_score_text_surface,(OFFSET+460, cell_size * number_of_cell + 90))
-        # draw_other_scores(screen,game.network,score_font)
+        #draw_other_scores(screen,game.network,score_font)
+        game.state = "STOPPED"
         pygame.display.update()
+    elif game.state == "ONLINE_PLAY":
+        print("TESTED STATE ONLINE PLAY")
+
+        screen.fill(GREEN)
+        draw_grid()
+        pygame.draw.rect(screen, DARK_GREEN, (OFFSET-5, OFFSET-5, cell_size*number_of_cell+10, cell_size*number_of_cell+10), 5)
+        game.draw()
+        draw_other_scores(screen, game.network, score_font)
+    
+        title_surface = title_font.render("Retro Snake", True, DARK_GREEN)
+        score_surface = score_font.render(str(game.score),True, DARK_GREEN)
+        high_score_surface =  high_score_font.render(str(scor), True, DARK_GREEN)
+        high_score_text_surface = high_score_text_font.render(names, True, DARK_GREEN)
+        score_text_surface = score_text_font.render(username, True, DARK_GREEN)
+    
+        screen.blit(title_surface, (OFFSET-5,20))
+        screen.blit(score_surface, (OFFSET+50, cell_size*number_of_cell +115))
+        screen.blit(score_text_surface, (OFFSET+15, cell_size*number_of_cell + 90))
+        screen.blit(high_score_surface, (OFFSET+490, cell_size * number_of_cell + 115))
+        screen.blit(high_score_text_surface,(OFFSET+460, cell_size * number_of_cell + 90))
+        pygame.display.update()
+        
+
+    else:
+        screen.fill(GREEN)
+        draw_grid()
+        pygame.draw.rect(screen, DARK_GREEN, (OFFSET-5, OFFSET-5, cell_size*number_of_cell+10, cell_size*number_of_cell+10), 5)
+        game.draw()
+    
+        title_surface = title_font.render("Retro Snake", True, DARK_GREEN)
+        score_surface = score_font.render(str(game.score),True, DARK_GREEN)
+        high_score_surface =  high_score_font.render(str(game.high_score), True, DARK_GREEN)
+        high_score_text_surface = high_score_text_font.render("High Score", True, DARK_GREEN)
+        score_text_surface = score_text_font.render("Current Score", True, DARK_GREEN)
+    
+        screen.blit(title_surface, (OFFSET-5,20))
+        screen.blit(score_surface, (OFFSET+50, cell_size*number_of_cell +115))
+        screen.blit(score_text_surface, (OFFSET+15, cell_size*number_of_cell + 90))
+        screen.blit(high_score_surface, (OFFSET+490, cell_size * number_of_cell + 115))
+        screen.blit(high_score_text_surface,(OFFSET+460, cell_size * number_of_cell + 90))
+        # draw_other_scores(screen, game.network, score_font)
+    
+        pygame.display.update()
+        
 
     clock.tick(60)
 
