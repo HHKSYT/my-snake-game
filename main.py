@@ -8,6 +8,7 @@ from settings import *
 from snake import Snake
 from network import NetworkClient
 
+# buttons = Button(pos, image_path, hover_image_path)
 
 
 # def check_internet_connection():
@@ -88,10 +89,14 @@ offline_text_font = pygame.font.Font("font/bold.ttf",25)
 online_text_font = pygame.font.Font("font/bold.ttf",25)
 not_avaiable_text_font= pygame.font.Font("font/bold.ttf",25)
 
+
+online_score_font = pygame.font.Font(None,60)
+online_score_text_font = pygame.font.Font(None, 40)
+
 ip_active = False
 user_active = False
-username = "Liam"
-server_ip = "192.168.99.230"
+username = ""
+server_ip = "192.168.99.121"
 
 names = ""
 scor = ""
@@ -158,12 +163,12 @@ class Game:
         self.score = 0
         self.high_score = 0
         self.high_score = load_high_score()
-        self.network = NetworkClient(server_ip,username)
+        self.network = None
     def draw(self):
         self.food.draw()
         self.snake.draw()
     def update(self):
-        if self.state in ["RUNNING", "ONLINE_PLAY"]:
+        if self.state in ["RUNNING", "ONLINE_PLAY","DEAD"]:
             self.snake.update()
             self.check_collison_with_food()
             self.check_collison_with_edges()
@@ -177,7 +182,8 @@ class Game:
             if self.score > self.high_score:
                 self.high_score = self.score
             self.snake.eat_sound.play()
-            self.network.send_score(self.score)
+            if self.network:
+                self.network.send_score(self.score)
     def check_collison_with_edges(self):
         if self.snake.body[0].x == number_of_cell or self.snake.body[0].x == -1:
             self.game_over()
@@ -210,8 +216,38 @@ def draw_grid():
 
 start_button = Button(
     pos=(screen.get_width() // 2, 300),
-    image_path="Graphics/menu_small_1.png",
-    hover_image_path="Graphics/menu_small_2.png"
+    image_path="Graphics/start1.png",
+    hover_image_path="Graphics/start2.png"
+)
+
+help_button = Button(
+    pos=(screen.get_width() // 2, 400),
+    image_path="Graphics/help1.png",
+    hover_image_path="Graphics/help2.png"
+)
+
+offline_button = Button(
+    pos=(screen.get_width() // 2, 300),
+    image_path="Graphics/offline1.png",
+    hover_image_path="Graphics/offline2.png"
+)
+
+online_button = Button(
+    pos=(screen.get_width() // 2, 300),
+    image_path="Graphics/online1.png",
+    hover_image_path="Graphics/online2.png"
+)
+
+enter_button = Button(
+    pos=(screen.get_width() // 2, 300),
+    image_path="Graphics/enter_1.png",
+    hover_image_path="Graphics/enter_2.png"
+)
+
+menu_button = Button(
+    pos=(screen.get_width() // 2, 300),
+    image_path="Graphics/start_menu.png",
+    hover_image_path="Graphics/start_glow.png"
 )
 
 def draw_main_menu():
@@ -222,11 +258,18 @@ def draw_main_menu():
     go_help_surface = go_help_text_font.render("Press h for help", True, DARK_GREEN)
 
     screen.blit(title_surface, ((screen.get_width() - title_surface.get_width()) // 2, 150))
-    screen.blit(go_help_surface, ((screen.get_width() - go_help_surface.get_width()) // 2, 350))
+    # screen.blit(go_help_surface, ((screen.get_width() - go_help_surface.get_width()) // 2, 350))
     screen.blit(credits_text_surface, (OFFSET + 220, cell_size * number_of_cell + 120))
 
     # Draw hoverable start button
     start_button.draw(screen)
+    help_button.draw(screen)
+    # Show cursor hitbox
+    pygame.draw.circle(screen, (0, 255, 0), pygame.mouse.get_pos(), 5)  # green dot at mouse
+
+# Draw the red rectangle around button hitboxes (very useful)
+    pygame.draw.rect(screen, (255, 0, 0), start_button.rect, 2)
+    pygame.draw.rect(screen, (255, 0, 0), help_button.rect, 2)
 
     pygame.display.update()
 
@@ -260,7 +303,7 @@ def draw_choose_offline():
     screen.blit(not_avaiable_surface, ((screen.get_width() - not_avaiable_surface.get_width()) // 2, 400))
     pygame.display.update()
 
-def handleclick(event):
+def handleclick(event,network):
     global username,font,color
     font = pygame.font.Font(None, 40)
     # input_box = pygame.Rect(200, 185, 240, 50)  # Fixed width
@@ -288,13 +331,15 @@ def handleclick(event):
             if user_active:
                 if event.key == pygame.K_RETURN:
                     print("Username entered:", username)
+                    # network.send
                 elif event.key == pygame.K_BACKSPACE:
                     username = username[:-1]
                 else:
                     username += event.unicode
             elif ip_active:
                 if event.key == pygame.K_RETURN:
-                    print("Server IP entered:", server_ip)
+                    # print("Server IP entered:", server_ip)
+                    game.network = NetworkClient(server_ip, username)
                     game.state = "ONLINE_PLAY"
                 elif event.key == pygame.K_BACKSPACE:
                     server_ip = server_ip[:-1]
@@ -347,13 +392,18 @@ def draw_other_scores(screen, network, font):
     Assumes `network.get_scores()` returns a dictionary: {username: score}
     """
     scores = network.get_scores()
+    x = OFFSET + 460
+    y = cell_size * number_of_cell + 90
+
     # print("Received scores:", scores)
     # print(scores.items())
     for name, score in scores.items():
-        global names,scor
-        names = name
-        scor = score
-        print(str(names) + " " + str(scor))
+        name_surface = online_score_text_font.render(str(name), True, DARK_GREEN)
+        score_surface = online_score_font.render(str(score), True, DARK_GREEN)
+        screen.blit(name_surface, (x,y-10))
+        screen.blit(score_surface, (x+30,y+25))
+        x -= 400
+        # print(str(names) + " " + str(scor))
 
 
 
@@ -400,8 +450,10 @@ while True:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_o:
                 game.state = "ONLINE"
         if game.state == "ONLINE":
-            handleclick(event)
+            handleclick(event, game.network)
+            # print("The game state is ONLINE")
         if game.state == "DEAD":
+            # print("The game state is DEAD")
             if event.type == pygame.KEYDOWN:
                 game.snake.reset()
                 # game.food.position = game.food.generate_random_pos(game.snake.body)
@@ -412,6 +464,7 @@ while True:
                 game.state = "RUNNING"
         
         elif game.state in ["RUNNING","ONLINE_PLAY"]:
+            # print("The game state is RUNNING or OnlinePLay")
             if event.type == SNAKE_UPDATE:
                 game.update()
             if event.type == pygame.KEYDOWN:
@@ -450,7 +503,12 @@ while True:
         #draw_other_scores(screen,game.network,score_font)
         game.state = "STOPPED"
         pygame.display.update()
+
     elif game.state == "ONLINE_PLAY":
+        # game.network.get_scores()
+        # print("Initial online data:", scor, names)
+        # print("Drawing state onlineplay")
+        # print(username)
         screen.fill(GREEN)
         draw_grid()
         pygame.draw.rect(screen, DARK_GREEN, (OFFSET-5, OFFSET-5, cell_size*number_of_cell+10, cell_size*number_of_cell+10), 5)
@@ -466,11 +524,12 @@ while True:
         screen.blit(title_surface, (OFFSET-5,20))
         # screen.blit(right_now_score, (OFFSET+50, cell_size*number_of_cell +115))
         # screen.blit(own_name, (OFFSET+15, cell_size*number_of_cell + 90))
-        screen.blit(online_score, (OFFSET+490, cell_size * number_of_cell + 115))
-        screen.blit(online_name,(OFFSET+460, cell_size * number_of_cell + 90))
+        # screen.blit(online_score, (OFFSET+490, cell_size * number_of_cell + 115))
+        # screen.blit(online_name,(OFFSET+460, cell_size * number_of_cell + 90))
         pygame.display.update()
         
     elif game.state == "DEAD":
+        # print("drawing state Dead")
         screen.fill(GREEN)
         draw_grid()
         pygame.draw.rect(screen, DARK_GREEN, (OFFSET-5, OFFSET-5, cell_size*number_of_cell+10, cell_size*number_of_cell+10), 5)
@@ -478,16 +537,16 @@ while True:
         draw_other_scores(screen, game.network, score_font)
     
         title_surface = title_font.render("Retro Snake", True, DARK_GREEN)
-        score_surface = score_font.render(str(game.score),True, DARK_GREEN)
-        high_score_surface =  high_score_font.render(str(scor), True, DARK_GREEN)
-        high_score_text_surface = high_score_text_font.render(names, True, DARK_GREEN)
-        score_text_surface = score_text_font.render(username, True, DARK_GREEN)
+        right_now_score = score_font.render(str(game.score),True, DARK_GREEN)
+        online_score =  high_score_font.render(str(scor), True, DARK_GREEN)
+        online_name = high_score_text_font.render(names, True, DARK_GREEN)
+        own_name = score_text_font.render(username, True, DARK_GREEN)
     
         screen.blit(title_surface, (OFFSET-5,20))
-        # screen.blit(score_surface, (OFFSET+50, cell_size*number_of_cell +115))
-        # screen.blit(score_text_surface, (OFFSET+15, cell_size*number_of_cell + 90))
-        screen.blit(high_score_surface, (OFFSET+490, cell_size * number_of_cell + 115))
-        screen.blit(high_score_text_surface,(OFFSET+460, cell_size * number_of_cell + 90))
+        # screen.blit(right_now_score), (OFFSET+50, cell_size*number_of_cell +115))
+        # screen.blit(own_name, (OFFSET+15, cell_size*number_of_cell + 90))
+        # screen.blit(online_score, (OFFSET+490, cell_size * number_of_cell + 115))
+        # screen.blit(online_name,(OFFSET+460, cell_size * number_of_cell + 90))
         pygame.display.update()
         
 

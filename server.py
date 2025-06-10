@@ -2,7 +2,7 @@ import socket
 import threading
 import json
 
-server = "192.168.99.230"
+server = "192.168.99.121"
 port = 5555
 
 clients = []
@@ -29,6 +29,8 @@ def handle_client(conn,addr):
         msg = json.loads(data.decode())
         username = msg.get("username", str(addr))
         scores[username] = msg.get("score", 0)
+
+        broadcast_scores()
         
         while True:    
             data = conn.recv(2048)
@@ -44,7 +46,7 @@ def handle_client(conn,addr):
                 print(f"Error parsing data from {username}:", {e})
     finally:
         clients.remove(conn)
-        scores.pop(player_id,None)
+        scores.pop(username,None)
         broadcast_scores()
         conn.close()
 
