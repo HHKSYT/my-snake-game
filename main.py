@@ -96,7 +96,7 @@ online_score_text_font = pygame.font.Font(None, 40)
 ip_active = False
 user_active = False
 username = ""
-server_ip = "192.168.99.121"
+server_ip = "192.168.99.230"
 
 names = ""
 scor = ""
@@ -216,8 +216,8 @@ def draw_grid():
 
 start_button = Button(
     pos=(screen.get_width() // 2, 300),
-    image_path="Graphics/start1.png",
-    hover_image_path="Graphics/start2.png"
+    image_path="Graphics/test.png",
+    hover_image_path="Graphics/test2.png"
 )
 
 help_button = Button(
@@ -246,8 +246,8 @@ enter_button = Button(
 
 menu_button = Button(
     pos=(screen.get_width() // 2, 300),
-    image_path="Graphics/start_menu.png",
-    hover_image_path="Graphics/start_glow.png"
+    image_path="Graphics/menu1.png",
+    hover_image_path="Graphics/menu2.png"
 )
 
 def draw_main_menu():
