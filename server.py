@@ -2,7 +2,7 @@ import socket
 import threading
 import json
 
-server = "192.168.99.230"
+server = "192.168.99.121"
 port = 5555
 
 clients = []

@@ -96,7 +96,7 @@ online_score_text_font = pygame.font.Font(None, 40)
 ip_active = False
 user_active = False
 username = ""
-server_ip = "192.168.99.230"
+server_ip = "192.168.99.121"
 
 names = ""
 scor = ""
@@ -423,6 +423,8 @@ game = Game()
 SNAKE_UPDATE = pygame.USEREVENT + 1
 pygame.time.set_timer(SNAKE_UPDATE,150)
 
+just_switch_to_mode = True
+
 
 while True:
     for event in pygame.event.get():
@@ -435,6 +437,7 @@ while True:
 
             if start_button.is_clicked(event):
                 game.state = "MODE"
+                just_switch_to_mode = True
             if help_button.is_clicked(event):
                 game.state = "HELP"
                 
@@ -445,12 +448,14 @@ while True:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 game.state = "MENU"
 
-        if game.state == "MODE":
+        if game.state == "MODE" and event.type == pygame.MOUSEBUTTONDOWN:
             print("On mode")
-            if offline_button.is_clicked(event):
-                game.state = "OFFLINE"
-            if online_button.is_clicked(event):
-                game.state = "ONLINE"
+            if not just_switch_to_mode:
+
+                if offline_button.is_clicked(event):
+                    game.state = "OFFLINE"
+                elif online_button.is_clicked(event):
+                    game.state = "ONLINE"
         
         # if game.state == "MODE":
         #     if online_button.is_clicked(event):
@@ -466,11 +471,12 @@ while True:
                 game.score = 0
                 game.state = "ONLINE_PLAY"
         elif game.state == "STOPPED":
+            print("STOPPED")
             if event.type == pygame.KEYDOWN:
                 game.state = "RUNNING"
         
-        elif game.state in ["RUNNING","ONLINE_PLAY"]:
-            # print("The game state is RUNNING or OnlinePLay")
+        elif game.state in ["RUNNING","ONLINE_PLAY", "OFFLINE", "STOPPED"]:
+            print("The game state is RUNNING or OnlinePLay or offline")
             if event.type == SNAKE_UPDATE:
                 game.update()
             if event.type == pygame.KEYDOWN:
@@ -487,6 +493,7 @@ while True:
     elif game.state == "MODE":
         print("It run")
         draw_choose_offline()
+        just_switch_to_mode = False
     elif game.state == "MENU":
         draw_main_menu()
     elif game.state == "ONLINE":
