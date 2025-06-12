@@ -216,14 +216,14 @@ def draw_grid():
 
 start_button = Button(
     pos=(screen.get_width() // 2, 300),
-    image_path="Graphics/test.png",
-    hover_image_path="Graphics/test2.png"
+    image_path="Graphics/start1.png",
+    hover_image_path="Graphics/start2.png"
 )
 
 help_button = Button(
     pos=(screen.get_width() // 2, 400),
-    image_path="Graphics/help1.png",
-    hover_image_path="Graphics/help2.png"
+    image_path="Graphics/help2.png",
+    hover_image_path="Graphics/help1.png"
 )
 
 offline_button = Button(
@@ -233,15 +233,15 @@ offline_button = Button(
 )
 
 online_button = Button(
-    pos=(screen.get_width() // 2, 300),
+    pos=(screen.get_width() // 2, 360),
     image_path="Graphics/online1.png",
     hover_image_path="Graphics/online2.png"
 )
 
 enter_button = Button(
     pos=(screen.get_width() // 2, 300),
-    image_path="Graphics/enter_1.png",
-    hover_image_path="Graphics/enter_2.png"
+    image_path="Graphics/enter1.png",
+    hover_image_path="Graphics/enter2.png"
 )
 
 menu_button = Button(
@@ -298,9 +298,11 @@ def draw_choose_offline():
     not_avaiable_surface = not_avaiable_text_font.render("Online mode is currently not avaiable", True, DARK_GREEN)
 
     screen.blit(mode_text_surface, ((screen.get_width() - mode_text_surface.get_width()) // 2, 150))
-    screen.blit(offline_text_surface, ((screen.get_width() - offline_text_surface.get_width()) // 2, 250))
-    screen.blit(online_text_surface, ((screen.get_width() - online_text_surface.get_width()) // 2, 350))
-    screen.blit(not_avaiable_surface, ((screen.get_width() - not_avaiable_surface.get_width()) // 2, 400))
+    # screen.blit(offline_text_surface, ((screen.get_width() - offline_text_surface.get_width()) // 2, 250))
+    # screen.blit(online_text_surface, ((screen.get_width() - online_text_surface.get_width()) // 2, 350))
+    offline_button.draw(screen)
+    online_button.draw(screen)
+    # screen.blit(not_avaiable_surface, ((screen.get_width() - not_avaiable_surface.get_width()) // 2, 400))
     pygame.display.update()
 
 def handleclick(event,network):
@@ -429,11 +431,11 @@ while True:
             game.network.stop()
             pygame.quit()
             sys.exit()
-        if game.state == "MENU":
+        if game.state == "MENU" and event.type == pygame.MOUSEBUTTONDOWN:
 
             if start_button.is_clicked(event):
                 game.state = "MODE"
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_h:
+            if help_button.is_clicked(event):
                 game.state = "HELP"
                 
         # if event.type == pygame.KEYDOWN and event.key == pygame.K_h:
@@ -444,11 +446,15 @@ while True:
                 game.state = "MENU"
 
         if game.state == "MODE":
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_f:
+            print("On mode")
+            if offline_button.is_clicked(event):
                 game.state = "OFFLINE"
-        if game.state == "MODE":
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_o:
+            if online_button.is_clicked(event):
                 game.state = "ONLINE"
+        
+        # if game.state == "MODE":
+        #     if online_button.is_clicked(event):
+        #         game.state = "ONLINE"
         if game.state == "ONLINE":
             handleclick(event, game.network)
             # print("The game state is ONLINE")
@@ -479,12 +485,14 @@ while True:
     if game.state == "HELP":
         draw_help_menu()
     elif game.state == "MODE":
+        print("It run")
         draw_choose_offline()
     elif game.state == "MENU":
         draw_main_menu()
     elif game.state == "ONLINE":
         OnlineModeName()
     elif game.state == "OFFLINE":
+        print("Offline")
         screen.fill(GREEN)
         draw_grid()
         pygame.draw.rect(screen, DARK_GREEN, (OFFSET-5, OFFSET-5, cell_size*number_of_cell+10, cell_size*number_of_cell+10), 5)
